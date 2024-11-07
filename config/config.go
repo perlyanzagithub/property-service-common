@@ -43,7 +43,7 @@ var (
 )
 
 // InitializePostgreSQL initializes the PostgreSQL connection using GORM
-func InitializePostgreSQL(config PostgreSQLConfig) error {
+func InitializePostgreSQL(config PostgreSQLConfig) (*gorm.DB, error) {
 	// Build the connection string for PostgreSQL
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s search_path=%s",
 		config.Host, config.Port, config.User, config.Password, config.DBName, config.SSLMode, config.Schema)
@@ -53,14 +53,14 @@ func InitializePostgreSQL(config PostgreSQLConfig) error {
 	DB, err = gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Unable to connect to PostgreSQL: %v\n", err)
-		return err
+		return nil, err
 	}
 	log.Println("PostgreSQL connection established successfully!")
-	return nil
+	return DB, nil
 }
 
 // InitializeRedis initializes the Redis connection
-func InitializeRedis(config RedisConfig) error {
+func InitializeRedis(config RedisConfig) (*redis.Client, error) {
 	RedisClient = redis.NewClient(&redis.Options{
 		Addr:     config.Addr,
 		Password: config.Password,
@@ -68,17 +68,17 @@ func InitializeRedis(config RedisConfig) error {
 	})
 
 	// Test Redis connection
-	_, err := RedisClient.Ping(context.Background()).Result()
+	redis, err := RedisClient.Ping(context.Background()).Result()
 	if err != nil {
 		log.Fatalf("Unable to connect to Redis: %v\n", err)
-		return err
+		return nil, err
 	}
 	log.Println("Redis connection established successfully!")
-	return nil
+	return redis, nil
 }
 
 // InitializeKafka initializes the Kafka consumer
-func InitializeKafka(config KafkaConfig) error {
+func InitializeKafka(config KafkaConfig) (*kafka.Reader, error) {
 	KafkaReader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  config.Brokers,
 		Topic:    config.Topic,
@@ -87,7 +87,7 @@ func InitializeKafka(config KafkaConfig) error {
 		MaxBytes: 10e6, // 10MB
 	})
 	log.Println("Kafka consumer initialized successfully!")
-	return nil
+	return KafkaReader, nil
 }
 
 // ClosePostgreSQL gracefully closes the PostgreSQL database connection
