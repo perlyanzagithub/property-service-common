@@ -68,13 +68,13 @@ func InitializeRedis(config RedisConfig) (*redis.Client, error) {
 	})
 
 	// Test Redis connection
-	redis, err := RedisClient.Ping(context.Background()).Result()
+	_, err := RedisClient.Ping(context.Background()).Result()
 	if err != nil {
 		log.Fatalf("Unable to connect to Redis: %v\n", err)
 		return nil, err
 	}
 	log.Println("Redis connection established successfully!")
-	return redis, nil
+	return RedisClient, nil
 }
 
 // InitializeKafka initializes the Kafka consumer
