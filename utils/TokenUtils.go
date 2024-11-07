@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/perlyanzagithub/property-service-common/config"
 	"os"
 	"time"

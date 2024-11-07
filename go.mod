@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/segmentio/kafka-go v0.4.47
 	golang.org/x/net v0.30.0
 	gorm.io/driver/postgres v1.5.9
