@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/perlyanzagithub/property-service-common/dtos"
+	"gorm.io/gorm"
 	"io"
 	"os"
 	"reflect"
@@ -117,4 +119,25 @@ func CopyDTOToModel(dto interface{}, model interface{}) error {
 		}
 	}
 	return nil
+}
+func ApplyFilters[T any](db *gorm.DB, request dtos.RequestDTO, out *[]T) (int64, int64, error) {
+	var totalData int64
+
+	if request.Filter != nil {
+		for key, value := range request.Filter {
+			db = db.Where(fmt.Sprintf("%s LIKE ?", key), "%"+value.(string)+"%")
+		}
+	}
+
+	if err := db.Count(&totalData).Error; err != nil {
+		return 0, 0, err
+	}
+	if err := db.Order(request.OrderBy).
+		Offset((request.Page - 1) * request.Size).
+		Limit(request.Size).
+		Find(out).Error; err != nil {
+		return 0, 0, err
+	}
+
+	return totalData, TotalPage(totalData, request.Size), nil
 }
