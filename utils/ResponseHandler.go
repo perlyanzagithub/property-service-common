@@ -13,6 +13,12 @@ type Response struct {
 	Meta   *interface{} `json:"meta"`
 	Error  interface{}  `json:"error,omitempty"`
 }
+type Pagination struct {
+	Page      int `json:"page"`
+	Size      int `json:"size"`
+	TotalPage int `json:"total_page"`
+	TotalData int `json:"total_data"`
+}
 
 func HandleResponse(c *gin.Context, code int, status string, data interface{}, meta interface{}, err error) {
 	if err != nil {
