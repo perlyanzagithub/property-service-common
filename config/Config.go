@@ -40,6 +40,7 @@ var (
 	DB          *gorm.DB
 	RedisClient *redis.Client
 	KafkaReader *kafka.Reader
+	KafkaWriter *kafka.Writer
 )
 
 // InitializePostgreSQL initializes the PostgreSQL connection using GORM
@@ -78,7 +79,7 @@ func InitializeRedis(config RedisConfig) (*redis.Client, error) {
 }
 
 // InitializeKafka initializes the Kafka consumer
-func InitializeKafka(config KafkaConfig) (*kafka.Reader, error) {
+func InitializeKafkaReader(config KafkaConfig) (*kafka.Reader, error) {
 	KafkaReader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  config.Brokers,
 		Topic:    config.Topic,
@@ -88,6 +89,14 @@ func InitializeKafka(config KafkaConfig) (*kafka.Reader, error) {
 	})
 	log.Println("Kafka consumer initialized successfully!")
 	return KafkaReader, nil
+}
+func InitializeKafkaWriter(config KafkaConfig) (*kafka.Writer, error) {
+	KafkaWriter = &kafka.Writer{
+		Addr:     kafka.TCP(config.Brokers...),
+		Topic:    config.Topic,
+		Balancer: &kafka.LeastBytes{},
+	}
+	return KafkaWriter, nil
 }
 
 // ClosePostgreSQL gracefully closes the PostgreSQL database connection
