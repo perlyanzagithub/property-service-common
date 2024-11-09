@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/perlyanzagithub/property-service-common/dtos"
 	"gorm.io/gorm"
 	"io"
@@ -58,11 +59,28 @@ func ConvertToDTOs[T any](data []interface{}) ([]T, error) {
 func TotalPage(totalData int64, size int) int64 {
 	return (totalData + int64(size) - 1) / int64(size)
 }
+func loadSecretKey() ([]byte, error) {
+	err := godotenv.Load()
+	if err != nil {
+		return nil, err
+	}
+	secretKey := os.Getenv("SECRET_KEY_CRYPTO")
+	if secretKey == "" {
+		return nil, errors.New("missing SECRET_KEY_CRYPTO environment variable")
+	}
+	return []byte(secretKey), nil
+}
+
+func createCipherBlock() (cipher.Block, error) {
+	key, err := loadSecretKey()
+	if err != nil {
+		return nil, err
+	}
+	return aes.NewCipher(key)
+}
 
 func EncryptAES(plainText string) (string, error) {
-	secretKey := os.Getenv("SECRET_KEY_CRYPTO")
-	key := []byte(secretKey)
-	block, err := aes.NewCipher(key)
+	block, err := createCipherBlock()
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +88,6 @@ func EncryptAES(plainText string) (string, error) {
 	cipherText := make([]byte, aes.BlockSize+len(plainText))
 	iv := cipherText[:aes.BlockSize]
 
-	// Generate a random IV
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return "", err
 	}
@@ -78,18 +95,16 @@ func EncryptAES(plainText string) (string, error) {
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(cipherText[aes.BlockSize:], []byte(plainText))
 
-	// Return the encrypted text encoded in base64
 	return base64.StdEncoding.EncodeToString(cipherText), nil
 }
+
 func DecryptAES(cipherText string) (string, error) {
-	secretKey := os.Getenv("SECRET_KEY_CRYPTO")
-	key := []byte(secretKey)
-	cipherTextBytes, err := base64.StdEncoding.DecodeString(cipherText)
+	block, err := createCipherBlock()
 	if err != nil {
 		return "", err
 	}
 
-	block, err := aes.NewCipher(key)
+	cipherTextBytes, err := base64.StdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return "", err
 	}
