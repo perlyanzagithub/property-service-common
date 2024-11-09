@@ -8,11 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/joho/godotenv"
 	"github.com/perlyanzagithub/property-service-common/dtos"
 	"gorm.io/gorm"
 	"io"
-	"os"
 	"reflect"
 )
 
@@ -60,14 +58,7 @@ func TotalPage(totalData int64, size int) int64 {
 	return (totalData + int64(size) - 1) / int64(size)
 }
 func loadSecretKey() ([]byte, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
-	secretKey := os.Getenv("SECRET_KEY_CRYPTO")
-	if secretKey == "" {
-		return nil, errors.New("missing SECRET_KEY_CRYPTO environment variable")
-	}
+	secretKey := "secretkeyproperty"
 	return []byte(secretKey), nil
 }
 
