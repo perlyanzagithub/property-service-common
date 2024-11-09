@@ -58,7 +58,7 @@ func TotalPage(totalData int64, size int) int64 {
 	return (totalData + int64(size) - 1) / int64(size)
 }
 func loadSecretKey() ([]byte, error) {
-	secretKey := "secretkeyproperty"
+	secretKey := "secretkeypropert"
 	return []byte(secretKey), nil
 }
 
