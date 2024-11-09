@@ -22,22 +22,22 @@ func (m *JWTMiddleware) Authenticate() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			utils.HandleResponse(c, http.StatusUnauthorized, "failed", nil, nil, nil)
-			return
+			c.Abort()
 		}
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 		decrypt, err := utils.DecryptAES(tokenStr)
 		if err != nil {
 			utils.HandleError(c, err, http.StatusUnauthorized)
-			return
+			c.Abort()
 		}
 		if isBlacklisted, _ := m.redis.Get(decrypt); isBlacklisted != "active" {
 			utils.HandleResponse(c, http.StatusUnauthorized, "failed", nil, nil, nil)
-			return
+			c.Abort()
 		}
 		claims, err := m.jwtService.ParseToken(decrypt)
 		if err != nil {
 			utils.HandleError(c, err, http.StatusUnauthorized)
-			return
+			c.Abort()
 		}
 
 		// Store user ID in context for further use
